@@ -9,7 +9,7 @@ import {
 
 
 
-const profile = (props) => {
+const projects = (props) => {
 	return(
 		<Layout>
 			<CustomHeader/>
@@ -34,7 +34,7 @@ const profile = (props) => {
 		  </Layout>
 		// <div>
 		// 	<p>
-		// 		Profile
+		// 		projects
 		// 	</p>
 		// 	<p>
 		// 		Strongly self-motivated Software Engineer with 3 years of experience of designing and building full-stack software application from web platform to mobile platform. Proficient in both back-end and front-end technology such as NodeJS, Express JS, React JS, React Native, AngularJS. Vast experience on Linux/Unix operating system. Eager to take the challenge and opportunity to work out of the comfort zone.
@@ -44,4 +44,4 @@ const profile = (props) => {
 }
 
 
-export default profile
+export default projects
