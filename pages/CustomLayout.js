@@ -16,12 +16,129 @@
   const Panel = Collapse.Panel;
   var _ = require('lodash');
   
+
+
+	// ConditionForm Form
+	const ActionFormNew = Form.create({ name: 'action' })(
+		class extends React.Component {
+			constructor(props){
+				super(props)
+				this.state = {
+					ActionKey: [],
+					ActionType: ''
+				}
+			}
+	
+			handleChangeActionType = (ActionType) => { 
+				console.log(ActionType)
+				// console.log(ActionType)
+				let selectedActionType = _.find(this.props.rules.conditionType, {'NAME': ActionType});
+				console.log(selectedActionType)
+				let ActionKey = this.props.rules.conditionKey.map((Action)=>{
+					console.log(Action)
+					if (Action.KEY_TYPE.toUpperCase() == selectedActionType.NAME.toUpperCase()){
+						return Action
+					} else null
+				})
+				console.log(ActionKey)
+				ActionKey = _.without(ActionKey, undefined)
+				this.setState({ActionKey, ActionType})
+			}
+			// Save button when edit
+			handleSave = () => {
+				const form = this.props.form;
+				form.validateFields((err, values) => {
+				  if (err) {
+					return;
+				  }
+				console.log('Received values of form: ', values);
+				this.props.handleSave(values, this.props)
+				this.setState({ActionKey:[], ActionType: ''})
+				})
+			}
+			ActionType = () => {
+				const { getFieldDecorator } = this.props.form;
+				const { rules } = this.props;
+				let menu = rules.conditionType.map(type => {
+					if (type.TYPE.toUpperCase() === 'ACTION') {
+						return (<Select.Option value={type.NAME} key={type.NAME}>{type.NAME}</Select.Option>)
+					} else return null
+				})
+				menu = _.without(menu, undefined)
+				return (
+					<Form.Item label='Action Type'>
+					{getFieldDecorator('CONDITION_TYPE', {
+					  rules: [{
+						required: true, message: 'Please Input Action Type',
+					}],
+					// initialValue: this.props.currentObject.Action_TYPE || ''
+					})(<Select type="secondary" onChange={this.handleChangeActionType}>{menu}</Select>)}
+					</Form.Item>
+					)
+			}
+			// Put it here so it can fix the problems of only input 1 char
+			FormList = () => {
+				const { getFieldDecorator } = this.props.form;
+				let value = this.state.ActionKey.map((ActionKey, index) => {
+					return (
+						<div key={ActionKey.KEY_NAME+String(index)}>
+							<Form.Item label={ActionKey.KEY_NAME} key={ActionKey.KEY_NAME}>
+								{
+									getFieldDecorator(`${ActionKey.KEY_NAME}`,
+									{
+								  rules: [{
+									required: true, message: `Please input ${ActionKey.KEY_NAME}`,
+								  }],
+								//   initialValue: oldprops.currentObject[ActionKey.KEY_NAME] || '',
+								})(<Input/>)}
+							</Form.Item>
+						</div>
+					)
+				})
+				return value
+			}		
+			render(){
+				const { getFieldDecorator } = this.props.form;
+				const { rules } = this.props;
+					return (
+						<div>
+							<this.ActionType/>
+							<this.FormList/>
+							<Form.Item>
+								<Button
+								type="primary"
+								htmlType="submit"
+								onClick={this.handleSave}
+								// disabled={hasErrors(getFieldsError())}
+								>
+								Save Action
+								</Button>
+							</Form.Item>
+						</div>
+					)
+			}
+		})
+	
 // Rules Form
 const RulesFormNew = Form.create({ name: 'rules' })(
 	class extends React.Component {
 		constructor(props){
 			super(props)
 		}
+
+		// Save button when edit
+		handleSave = () => {
+			const form = this.props.form;
+			form.validateFields((err, values) => {
+			  if (err) {
+				return;
+			  }
+			console.log('Received values of form: ', values);
+			this.props.handleSave(values, this.props)
+			this.setState({ActionKey:[], ActionType: ''})
+			})
+		}
+
 		render(){
 			const { getFieldDecorator } = this.props.form;
 			const { rules } = this.props;
@@ -56,6 +173,16 @@ const RulesFormNew = Form.create({ name: 'rules' })(
 							  }],
 							})(<Input />)}
 						</Form.Item>
+						<Form.Item>
+							<Button
+							type="primary"
+							htmlType="submit"
+							onClick={this.handleSave}
+							// disabled={hasErrors(getFieldsError())}
+							>
+							Save Rules
+							</Button>
+						</Form.Item>
 					</div>
 			)
 		}
@@ -64,34 +191,6 @@ const RulesFormNew = Form.create({ name: 'rules' })(
 
 	// ConditionForm Form
 const ConditionFormNew = Form.create({ name: 'rules' })(
-// const ConditionFormNew = Form.create({
-// 	mapPropsToFields(props) {
-// 	  console.log('mapPropsToFields', props);
-// 	//   return {
-// 	// 	email: createFormField(props.formState.email),
-// 	//   };
-// 	console.log('currentobject',props.currentObject)
-// 		let newObject = {}
-// 		if (props.currentObject !== undefined) {
-// 			Object.keys(props.currentObject).map(conditionKey => {
-// 				if (conditionKey !== 'CONDITION_TYPE'){
-// 					newObject[`${conditionKey}`] = Form.createFormField(props.currentObject[conditionKey])
-// 				}
-// 			})
-// 		}
-// 		return newObject
-// 	},
-// 	onFieldsChange(props, fields) {
-// 	  console.log('onFieldsChange', fields);
-// 	  if (fields.CONDITION_TYPE === undefined){
-// 		  props.updateCondition(props, fields, props.keyitem)
-// 	  }
-// 	//   props.dispatch({
-// 	// 	type: 'save_fields',
-// 	// 	payload: fields,
-// 	//   });
-// 	},
-//   })(
 	class extends React.Component {
 		constructor(props){
 			super(props)
@@ -120,13 +219,14 @@ const ConditionFormNew = Form.create({ name: 'rules' })(
 			  }
 			console.log('Received values of form: ', values);
 			this.props.handleSave(values, this.props)
+			this.setState({conditionKey:[], conditionType: ''})
 			})
 		}
 		ConditionType = () => {
 			const { getFieldDecorator } = this.props.form;
 			const { rules } = this.props;
 			let menu = rules.conditionType.map(type => {
-				if (type.TYPE == 'CONDITION') {
+				if (type.TYPE.toUpperCase() === 'CONDITION') {
 					return (<Select.Option value={type.NAME} key={type.NAME}>{type.NAME}</Select.Option>)
 				} else return null
 			})
@@ -189,11 +289,15 @@ const ConditionFormNew = Form.create({ name: 'rules' })(
 		  constructor(props){
 			  super(props)
 			  this.state = {
+				  rulesInfo: {},
 				  count: 0,
+				  countAction: 0,
 				  current: 0,
 				  currentKeyColapse: 0,
 				  conditionList: [],
 				  conditionListData: {},
+				  ActionList: [],
+				  ActionListData: {},
 				  conditionKey: [],
 				  working: false,
 				  steps: [{
@@ -228,6 +332,8 @@ const ConditionFormNew = Form.create({ name: 'rules' })(
 			  
 		  Step = Steps.Step;
 
+
+		  // CONDITION
 		  handleNewCondition = () => {
 			this.setState({conditionList: [...this.state.conditionList, {'content': {'rules':this.props.rules, 'updateCondition':this.updateCondition, 'key':this.state.count + 1}, 'key': this.state.count + 1, 'value': {}}]})
 			this.setState({count: this.state.count + 1, working: true})
@@ -244,7 +350,7 @@ const ConditionFormNew = Form.create({ name: 'rules' })(
 			console.log('this.state',this.state)
 		}
 
-		handleSave = (values, props) => {
+		handleSaveCondition = (values, props) => {
 			console.log('values, props',values, props)
 			let newlistData =  Object.assign({}, this.state.conditionListData)
 			// let currenteditdata =  Object.assign({}, this.state.conditionListData.key.value, values)
@@ -280,15 +386,91 @@ const ConditionFormNew = Form.create({ name: 'rules' })(
 				  <div>
 					  {/* <Button type="primary" onClick={this.handleNewCondition} disabled={this.state.working}>New Condition</Button> */}
 					  <ConditionsList/>
-					  <ConditionFormNew visible={this.state.working} rules={this.props.rules} keyitem={this.state.count} handleSave = {this.handleSave}/>
+					  <ConditionFormNew visible={this.state.working} rules={this.props.rules} keyitem={this.state.count} handleSave = {this.handleSaveCondition}/>
 				  </div>
 			  )
 			}
 
 
+			// ACTION
+			handleNewAction = () => {
+			this.setState({ActionList: [...this.state.ActionList, {'content': {'rules':this.props.rules, 'updateAction':this.updateAction, 'key':this.state.countAction + 1}, 'key': this.state.countAction + 1, 'value': {}}]})
+			this.setState({countAction: this.state.countAction + 1, working: true})
+		  }
+
+		  handleRemoveAction = (key) =>{
+			// console.log('values, props',values, props)
+			let newlistData =  Object.assign({}, this.state.ActionListData)
+			// let currenteditdata =  Object.assign({}, this.state.ActionListData.key.value, values)
+			delete newlistData[key]
+			// console.log('newlistData',newlistData)
+
+			this.setState({ActionListData: Object.assign({}, newlistData), working:false, countAction: this.state.countAction + 1})
+			console.log('this.state',this.state)
+		}
+
+		handleSaveAction = (values, props) => {
+			console.log('values, props',values, props)
+			let newlistData =  Object.assign({}, this.state.ActionListData)
+			// let currenteditdata =  Object.assign({}, this.state.ActionListData.key.value, values)
+			newlistData[props.keyitem] = values
+			console.log('newlistData',newlistData)
+
+			this.setState({ActionListData: Object.assign({}, newlistData), working:false, countAction: this.state.countAction + 1})
+			console.log('this.state',this.state)
+		}
+
+		  Actions = () => {
+			  let ActionsList = () =>{
+				  return (
+						Object.keys(this.state.ActionListData).map((ActionKey, index)=> {
+						  // let NewAction = Form.create({ name: `Action${index}` ,onValuesChange: (props, changes, all)=>{updateAction(index,all)}})(ActionForm)
+						  let headerText = `Action ${index+1}`
+						  return (
+								  <div key={index}>
+									<Popconfirm
+											title="Sure to delete?"
+											onConfirm={() => this.handleRemoveAction(ActionKey)}
+											>
+											<a>Delete</a>
+									</Popconfirm>
+											<a style = {{marginLeft:10}}>Edit</a>
+											<p>{headerText}: {this.state.ActionListData[ActionKey].CONDITION_TYPE}</p>
+								  </div>
+						  )
+					  })
+				  )
+			  }
+			return(
+				  <div>
+					  {/* <Button type="primary" onClick={this.handleNewAction} disabled={this.state.working}>New Action</Button> */}
+					  <ActionsList/>
+					  <ActionFormNew visible={this.state.working} rules={this.props.rules} keyitem={this.state.countAction} handleSave = {this.handleSaveAction}/>
+				  </div>
+			  )
+			}
+
+
+
+		handleSaveRules = (values, props) => {
+			console.log('values, props',values, props)
+			this.setState({rulesInfo: Object.assign({}, values)})
+			console.log('this.state',this.state)
+		}
+
+		handleSaveRules = (values, props) => {
+			console.log('values, props',values, props)
+			this.setState({rulesInfo: Object.assign({}, values)})
+			console.log('this.state',this.state)
+		}
+
+		onCreate = () => {
+			message.success('Processing complete!')
+		}
+
 	  render() {
 		  const {
-			  visible, onCancel, onCreate, form, edit, host, session, currentEditingSensor ,selectSensorType, selectedSensorType , onSave, rules
+			  visible, onCancel, form, edit, host, session, currentEditingSensor ,selectSensorType, selectedSensorType , onSave, rules
 		  } = this.props;
 		  const { current } = this.state;
 
@@ -298,7 +480,8 @@ const ConditionFormNew = Form.create({ name: 'rules' })(
 			  title={edit ? "Edit Rule" : "Create a new Rule"}
 			  okText={edit ? "Save" : "Create"}
 			  onCancel={onCancel}
-			  onOk={edit ? onSave: onCreate}
+			//   onOk={edit ? onSave: onCreate}
+			  onOk={edit ? onSave: this.onCreate}
 			  >
 			  {/* // Put it here so it can fix the problems of only input 1 char */}
 			  <div>
@@ -306,21 +489,21 @@ const ConditionFormNew = Form.create({ name: 'rules' })(
 					{this.state.steps.map(item => <this.Step key={item.title} title={item.title} />)}
 				  </Steps>
 				  <div className="steps-content">
+				  </div>
 				<Form layout="vertical">
 				{
 					// current == 0 ? <RulesFormNew rules={this.props.rules}/> : current == 1 ?  <ConditionFormNew rules={this.props.rules}/> : null
-					current == 0 ? <RulesFormNew rules={this.props.rules}/> : current == 1 ?  <this.Conditions/> : null
+					current == 0 ? <RulesFormNew rules={this.props.rules} handleSave = {this.handleSaveRules}/> : current == 1 ?  <this.Conditions/> : <this.Actions/>
 				}
 				</Form>
-				  </div>
 				  <div className="steps-action">
 				  {
 					  current < this.state.steps.length - 1
 					  && <Button type="primary" onClick={() => this.next()}>Next</Button>
 				  }
 				  {
-					  current === this.state.steps.length - 1
-					  && <Button type="primary" onClick={() => message.success('Processing complete!')}>Done</Button>
+					//   current === this.state.steps.length - 1
+					//   && <Button type="primary" onClick={() => message.success('Processing complete!')}>Done</Button>
 				  }
 				  {
 					  current > 0
